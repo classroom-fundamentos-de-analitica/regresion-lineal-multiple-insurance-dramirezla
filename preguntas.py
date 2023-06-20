@@ -61,42 +61,31 @@ def pregunta_03():
     Especificación del pipeline y entrenamiento
     -------------------------------------------------------------------------------------
     """
-
-    # Importe make_column_selector
-    # Importe make_column_transformer
-    # Importe SelectKBest
-    # Importe f_regression
-    # Importe LinearRegression
-    # Importe GridSearchCV
-    # Importe Pipeline
-    # Importe OneHotEncoder
-    from ____ import ____
-
-    pipeline = ____(
+    pipeline = Pipeline(
         steps=[
             # Paso 1: Construya un column_transformer que aplica OneHotEncoder a las
             # variables categóricas, y no aplica ninguna transformación al resto de
             # las variables.
             (
                 "column_transfomer",
-                ____(
+                make_column_transformer(
                     (
-                        ____(),
-                        ____(____=____),
+                        OneHotEncoder(),
+                        ['sex', 'smoker', 'region'],
                     ),
-                    remainder=____,
+                    remainder='passthrough',
                 ),
             ),
             # Paso 2: Construya un selector de características que seleccione las K
             # características más importantes. Utilice la función f_regression.
             (
                 "selectKBest",
-                ____(____=____),
+                SelectKBest(score_func=f_regression),
             ),
             # Paso 3: Construya un modelo de regresión lineal.
             (
-                "____",
-                ____(____),
+                "linearRegression",
+                LinearRegression(),
             ),
         ],
     )
@@ -107,59 +96,44 @@ def pregunta_03():
     # Defina un diccionario de parámetros para el GridSearchCV. Se deben
     # considerar valores desde 1 hasta 11 regresores para el modelo
     param_grid = {
-        ____: ____(____, ____),
+        "selectKBest__k": list(range(1, 12)),
     }
 
     # Defina una instancia de GridSearchCV con el pipeline y el diccionario de
     # parámetros. Use cv = 5, y como métrica de evaluación el valor negativo del
     # error cuadrático medio.
-    gridSearchCV = ____(
-        estimator=____,
-        param_grid=____,
-        cv=____,
-        scoring=____,
-        refit=____,
-        return_train_score=____,
-    )
-
+    gridSearchCV = GridSearchCV(
+    estimator=pipeline,
+    param_grid=param_grid,
+    cv=5,
+    scoring='neg_mean_squared_error',
+    refit=True,
+    return_train_score=True,
+)
     # Búsque la mejor combinación de regresores
     gridSearchCV.fit(X_train, y_train)
 
     # Retorne el mejor modelo
     return gridSearchCV
 
-
 def pregunta_04():
-    """
-    Evaluación del modelo
-    -------------------------------------------------------------------------------------
-    """
+"""
+Evaluación del modelo
+-------------------------------------------------------------------------------------
+"""
+# Obtenga el pipeline optimo de la pregunta 3.
+gridSearchCV = pregunta_03()
+# Cargue las variables.
+X_train, X_test, y_train, y_test = pregunta_02()
 
-    # Importe mean_squared_error
-    from ____ import ____
+# Evalúe el modelo con los conjuntos de entrenamiento y prueba.
+y_train_pred = gridSearchCV.predict(X_train)
+y_test_pred = gridSearchCV.predict(X_test)
 
-    # Obtenga el pipeline optimo de la pregunta 3.
-    gridSearchCV = pregunta_03()
+# Compute el error cuadratico medio de entrenamiento y prueba. Redondee los
+# valores a dos decimales.
+mse_train = mean_squared_error(y_train, y_train_pred).round(2)
+mse_test = mean_squared_error(y_test, y_test_pred).round(2)
 
-    # Cargue las variables.
-    X_train, X_test, y_train, y_test = pregunta_02()
-
-    # Evalúe el modelo con los conjuntos de entrenamiento y prueba.
-    y_train_pred = ____.____(____)
-    y_test_pred = ____.____(____)
-
-    # Compute el error cuadratico medio de entrenamiento y prueba. Redondee los
-    # valores a dos decimales.
-
-    mse_train = ____(
-        _____,
-        _____,
-    ).round(2)
-
-    mse_test = ____(
-        _____,
-        _____,
-    ).round(2)
-
-    # Retorne el error cuadrático medio para entrenamiento y prueba
-    return mse_train, mse_test
+# Retorne el error cuadrático medio para entrenamiento y prueba
+return mse_train, mse_test
