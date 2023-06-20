@@ -117,10 +117,7 @@ def pregunta_03():
     return gridSearchCV
 
 def pregunta_04():
-"""
-Evaluación del modelo
--------------------------------------------------------------------------------------
-"""
+
 # Obtenga el pipeline optimo de la pregunta 3.
 gridSearchCV = pregunta_03()
 # Cargue las variables.
